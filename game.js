@@ -4,11 +4,13 @@ let score = 0
 let lives = 3
 let level = 1
 let speed = 4
+let combo = 0
+
+let highScore = localStorage.getItem("highscore") || 0
 
 let basket = document.createElement("div")
 basket.classList.add("basket")
 basket.style.left = "150px"
-
 gameArea.appendChild(basket)
 
 document.addEventListener("mousemove", moveBasket)
@@ -30,7 +32,6 @@ let fruit = document.createElement("div")
 fruit.classList.add("fruit")
 
 let fruits = ["🍎","🍌","🍊","🍓","🍇","🍉"]
-
 fruit.innerHTML = fruits[Math.floor(Math.random()*fruits.length)]
 
 fruit.style.left = Math.random()*360 + "px"
@@ -49,30 +50,66 @@ let fruitX = fruit.offsetLeft
 
 if(fruitX > basketX-40 && fruitX < basketX+80){
 
-score++
+combo++
+score += 1 + combo
 
 document.getElementById("score").innerText = score
 
-if(score % 10 === 0){
+if(score > highScore){
+localStorage.setItem("highscore",score)
+}
 
+if(score % 10 === 0){
 level++
 speed++
-
 document.getElementById("level").innerText = level
-
 }
 
 }else{
 
-lives--
-document.getElementById("lives").innerText = lives
-
-if(lives <= 0){
-
-alert("Game Over! Score: " + score)
-location.reload()
+combo = 0
+loseLife()
 
 }
+
+fruit.remove()
+clearInterval(fall)
+
+}
+
+},30)
+
+}
+
+function spawnGoldenFruit(){
+
+let fruit = document.createElement("div")
+fruit.classList.add("fruit")
+
+fruit.innerHTML = "💎"
+
+fruit.style.left = Math.random()*360 + "px"
+fruit.style.top = "0px"
+
+gameArea.appendChild(fruit)
+
+let fall = setInterval(function(){
+
+fruit.style.top = fruit.offsetTop + speed + "px"
+
+if(fruit.offsetTop > 460){
+
+let basketX = basket.offsetLeft
+let fruitX = fruit.offsetLeft
+
+if(fruitX > basketX-40 && fruitX < basketX+80){
+
+score += 10
+document.getElementById("score").innerText = score
+
+}else{
+
+loseLife()
 
 }
 
@@ -108,16 +145,8 @@ let bombX = bomb.offsetLeft
 
 if(bombX > basketX-40 && bombX < basketX+80){
 
-lives--
-
-document.getElementById("lives").innerText = lives
-
-if(lives <= 0){
-
-alert("💥 Bomb hit! Game Over")
-location.reload()
-
-}
+alert("💥 Bomb!")
+loseLife()
 
 }
 
@@ -130,10 +159,65 @@ clearInterval(fall)
 
 }
 
+function spawnSlowPower(){
+
+let power = document.createElement("div")
+power.classList.add("fruit")
+
+power.innerHTML = "⚡"
+
+power.style.left = Math.random()*360 + "px"
+power.style.top = "0px"
+
+gameArea.appendChild(power)
+
+let fall = setInterval(function(){
+
+power.style.top = power.offsetTop + speed + "px"
+
+if(power.offsetTop > 460){
+
+let basketX = basket.offsetLeft
+let x = power.offsetLeft
+
+if(x > basketX-40 && x < basketX+80){
+
+speed = Math.max(2, speed-2)
+
+}
+
+power.remove()
+clearInterval(fall)
+
+}
+
+},30)
+
+}
+
+function loseLife(){
+
+lives--
+
+document.getElementById("lives").innerText = lives
+
+if(lives <= 0){
+
+alert("Game Over! Score: " + score)
+location.reload()
+
+}
+
+}
+
 function startGame(){
 
 setInterval(spawnFruit,1000)
 
-setInterval(spawnBomb,3000)
+setInterval(spawnBomb,4000)
+
+setInterval(spawnGoldenFruit,7000)
+
+setInterval(spawnSlowPower,9000)
 
 }
